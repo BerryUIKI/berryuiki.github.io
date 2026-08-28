@@ -1,0 +1,29 @@
+---
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+---
+
+<section class="section section--dark" id="testimonials">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">{t.testimonials.title}</h2>
+      <p class="section-sub">{t.testimonials.subtitle}</p>
+    </div>
+
+    <div class="testi-grid">
+      {t.testimonials.items.map((item) => (
+        <figure class="testi-card">
+          <blockquote>{item.quote}</blockquote>
+          <figcaption>{item.author}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>

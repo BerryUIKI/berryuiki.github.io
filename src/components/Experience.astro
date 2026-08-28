@@ -1,0 +1,33 @@
+---
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+---
+
+<section class="section" id="experience">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">{t.experience.title}</h2>
+      <p class="section-sub">{t.experience.subtitle}</p>
+    </div>
+
+    <div class="timeline">
+      {t.experience.items.map((item) => (
+        <div class="timeline__item">
+          <div class="timeline__period">{item.period}</div>
+          <div>
+            <div class="timeline__role">{item.role}</div>
+            <div class="timeline__company">{item.company}</div>
+            <p class="timeline__desc">{item.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

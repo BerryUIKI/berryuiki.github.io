@@ -1,0 +1,37 @@
+---
+import auroraImg from '../assets/work-aurora.png';
+import wanderImg from '../assets/work-wander.png';
+import echoImg from '../assets/work-echo.png';
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+const images = [auroraImg, wanderImg, echoImg];
+---
+
+<section class="section section--parchment" id="work">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">{t.work.title}</h2>
+      <p class="section-sub">{t.work.subtitle}</p>
+    </div>
+
+    <div class="work-grid">
+      {t.work.items.map((item, i) => (
+        <article class="work-card">
+          <div class="work-card__img">
+            <img src={images[i].src} alt={item.name} width={images[i].width} height={images[i].height} loading="lazy" />
+          </div>
+          <h3>{item.name}</h3>
+          <p>{item.description}</p>
+          <div class="work-card__tags">{item.tags}</div>
+        </article>
+      ))}
+    </div>
+  </div>
+</section>

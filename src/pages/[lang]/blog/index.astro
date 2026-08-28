@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { locales, defaultLocale, getTranslation } from '../../i18n/translations';
+import type { Locale } from '../../i18n/translations';
+
+export function getStaticPaths() {
+  return locales.map((locale) => ({ params: { lang: locale } }));
+}
+
+const { lang } = Astro.params;
+const locale = (lang as Locale) || defaultLocale;
+const t = getTranslation(locale);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+
+const posts = (await getCollection('blog'))
+  .filter((post) => post.data.lang === locale)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const title = locale === 'zh' ? '博客' : 'Blog';
+---
+
+<BaseLayout locale={locale} title={title}>
+  <section class="section">
+    <div class="container">
+      <div class="section-head">
+        <h2 class="section-title">{title}</h2>
+        <p class="section-sub">{locale === 'zh' ? '随笔、设计与代码。' : 'Notes on design, code & life.'}</p>
+      </div>
+
+      <div class="blog-list">
+        {posts.map((post) => (
+          <article class="blog-list__item">
+            <h2><a href={`${base}/${locale}/blog/${post.slug}/`}>{post.data.title}</a></h2>
+            <time datetime={post.data.date.toISOString()}>
+              {post.data.date.toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })}
+            </time>
+          </article>
+        ))}
+        {posts.length === 0 && <p style="color:var(--ink-muted-48)">{locale === 'zh' ? '暂无文章。' : 'No posts yet.'}</p>}
+      </div>
+    </div>
+  </section>
+</BaseLayout>

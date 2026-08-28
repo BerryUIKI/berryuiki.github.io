@@ -1,0 +1,62 @@
+---
+import heroImg from '../assets/hero.jpg';
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+
+<section class="hero" id="top">
+  <img class="hero__img" src={heroImg.src} alt="" width={heroImg.width} height={heroImg.height} />
+  <div class="hero__scrim" aria-hidden="true"></div>
+
+  <div class="hero__content">
+    <p class="hero__eyebrow">{t.hero.eyebrow}</p>
+    <p class="hero__badge">{t.hero.badge}</p>
+    <h1 class="hero__title">{t.hero.title}</h1>
+    <p class="hero__subtitle">{t.hero.subtitle}</p>
+    <div class="hero__ctas">
+      <a class="btn btn-primary" href={`${base}/${locale}/#work`}>{t.hero.ctaPrimary}</a>
+      <a class="btn btn-ghost-on-dark" href={`${base}/${locale}/#contact`}>{t.hero.ctaSecondary}</a>
+    </div>
+  </div>
+
+  <div class="hero__scroll-hint" aria-hidden="true">{t.hero.scrollHint}</div>
+</section>
+
+<script>
+  // Apple 产品页式滚动动效：滚动时照片缩小 + 下移 + 渐隐
+  const hero = document.querySelector('.hero') as HTMLElement;
+  const img = hero?.querySelector('.hero__img') as HTMLImageElement;
+
+  function updateHero() {
+    if (!hero || !img) return;
+    const y = window.scrollY;
+    const max = Math.max(hero.offsetHeight, 1);
+    const p = Math.min(y / max, 1);
+    const scale = 1 - 0.18 * p;
+    const translateY = 48 * p;
+    img.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+    img.style.opacity = String(1 - 0.35 * p);
+  }
+
+  let ticking = false;
+  function onScroll() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(() => {
+        updateHero();
+        ticking = false;
+      });
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  updateHero();
+</script>

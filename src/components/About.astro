@@ -1,0 +1,44 @@
+---
+import portraitImg from '../assets/portrait.jpg';
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+---
+
+<section class="section section--parchment" id="about">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">{t.about.title}</h2>
+      <p class="section-sub">{t.about.subtitle}</p>
+    </div>
+
+    <div class="about-grid">
+      <div class="about-text">
+        <p>{t.about.p1}</p>
+        <p>{t.about.p2}</p>
+        <div class="about-stats">
+          {t.about.stats.map((s) => (
+            <div>
+              <div class="about-stats__num">{s.value}</div>
+              <div class="about-stats__label">{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div class="about-chips">
+          {t.about.chips.map((c) => (
+            <span class="chip">{c}</span>
+          ))}
+        </div>
+      </div>
+      <div class="about-portrait">
+        <img src={portraitImg.src} alt={t.about.title} width={portraitImg.width} height={portraitImg.height} loading="lazy" />
+      </div>
+    </div>
+  </div>
+</section>

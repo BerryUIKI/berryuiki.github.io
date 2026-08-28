@@ -1,0 +1,33 @@
+---
+import type { Locale } from '../i18n/translations';
+import { getTranslation } from '../i18n/translations';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = getTranslation(locale);
+---
+
+<section class="section section--dark" id="skills">
+  <div class="container">
+    <div class="section-head">
+      <h2 class="section-title">{t.skills.title}</h2>
+      <p class="section-sub">{t.skills.subtitle}</p>
+    </div>
+
+    <div class="skills-grid">
+      {t.skills.columns.map((col) => (
+        <div class="skills-card">
+          <h3>{col.name}</h3>
+          <ul>
+            {col.items.map((item) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

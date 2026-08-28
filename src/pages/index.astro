@@ -1,0 +1,37 @@
+---
+// 根路径：客户端检测系统语言并重定向
+// 优先级：localStorage 手动选择 > navigator.language > 默认 en
+const base = import.meta.env.BASE_URL.replace(/\/$/, '');
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>THE BERRY — Berry Wahlberg / 花雨琦</title>
+    <script is:inline>
+      (function () {
+        var SUPPORTED = ['en', 'zh'];
+        var DEFAULT = 'en';
+        var lang = DEFAULT;
+        try {
+          var saved = localStorage.getItem('berry-lang');
+          if (saved && SUPPORTED.indexOf(saved) !== -1) {
+            lang = saved;
+          } else {
+            var nav = (navigator.language || 'en').toLowerCase().split('-')[0];
+            lang = SUPPORTED.indexOf(nav) !== -1 ? nav : DEFAULT;
+          }
+        } catch (e) {
+          lang = DEFAULT;
+        }
+        location.replace('{base}/' + lang + '/');
+      })();
+    </script>
+  </head>
+  <body>
+    <p style="font-family:system-ui;padding:24px;color:#666">
+      Redirecting to your language… / 正在为你切换语言…
+    </p>
+  </body>
+</html>
