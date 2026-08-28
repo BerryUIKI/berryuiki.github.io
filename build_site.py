@@ -609,16 +609,15 @@ def render_blog_post(locale: str, post: dict) -> str:
 # 构建入口
 # ============================================================
 def main():
-    if DIST.exists():
-        shutil.rmtree(DIST)
-    DIST.mkdir(parents=True)
+    # 沙箱环境禁用文件删除（回收站不可用），采用覆盖写入方式构建
+    DIST.mkdir(parents=True, exist_ok=True)
 
     # 静态资源
     shutil.copy(ROOT / "public" / "favicon.svg", DIST / "favicon.svg")
     shutil.copy(SRC / "styles" / "global.css", DIST / "styles.css")
     (DIST / "script.js").write_text(SCRIPT_JS, encoding="utf-8")
     assets = DIST / "assets"
-    assets.mkdir()
+    assets.mkdir(exist_ok=True)
     for f in ASSETS_SRC.iterdir():
         shutil.copy(f, assets / f.name)
 
@@ -628,17 +627,17 @@ def main():
     # 双语言主页
     for locale in LANGS:
         d = DIST / locale
-        d.mkdir()
+        d.mkdir(exist_ok=True)
         (d / "index.html").write_text(render_home(locale), encoding="utf-8")
 
     # 博客
     for locale in LANGS:
         blog_dir = DIST / locale / "blog"
-        blog_dir.mkdir(parents=True)
+        blog_dir.mkdir(parents=True, exist_ok=True)
         (blog_dir / "index.html").write_text(render_blog_index(locale), encoding="utf-8")
         for post in [p for p in load_posts() if p["lang"] == locale]:
             pdir = blog_dir / post["slug"]
-            pdir.mkdir()
+            pdir.mkdir(exist_ok=True)
             (pdir / "index.html").write_text(render_blog_post(locale, post), encoding="utf-8")
 
     # 统计
