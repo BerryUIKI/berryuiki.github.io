@@ -351,11 +351,13 @@ img {
   margin-top: 24px;
   border-radius: 18px;
   overflow: hidden;
+  /* 正方形由容器保证（非替换元素，aspect-ratio 可靠生效） */
+  aspect-ratio: 1 / 1;
 }
 
 .m-portrait img {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
   object-fit: cover;
 }
 
