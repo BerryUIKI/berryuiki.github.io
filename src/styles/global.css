@@ -845,8 +845,9 @@ img {
     display: none;
   }
   .hero__content {
-    /* 文字流式排到顶部，居左对齐 */
+    /* 文字流式排到顶部，居左对齐；z-index 浮在照片之上 */
     position: static;
+    z-index: 1;
     transform: none;
     max-width: none;
     width: 100%;
@@ -869,7 +870,8 @@ img {
     margin-top: 12px;
   }
   .hero__ctas {
-    /* 按钮推到最底部居中 */
+    /* 按钮推到最底部居中；z-index 浮在照片之上 */
+    z-index: 1;
     margin-top: auto;
     justify-content: center;
     gap: 12px;
