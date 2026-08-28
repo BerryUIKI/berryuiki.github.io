@@ -20,7 +20,8 @@ DIST = ROOT / "dist"
 ASSETS_SRC = SRC / "assets"
 POSTS_SRC = SRC / "content" / "posts"
 
-BASE = "/BerryUIKI"
+# 用户主页仓库模式：https://berryuiki.github.io/（根路径，无 base 前缀）
+BASE = ""
 
 # ============================================================
 # 翻译数据（与设计稿文案一致）
