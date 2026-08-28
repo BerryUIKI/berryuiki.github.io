@@ -19,8 +19,17 @@ const base = import.meta.env.BASE_URL.replace(/\/$/, '');
           if (saved && SUPPORTED.indexOf(saved) !== -1) {
             lang = saved;
           } else {
-            var nav = (navigator.language || 'en').toLowerCase().split('-')[0];
-            lang = SUPPORTED.indexOf(nav) !== -1 ? nav : DEFAULT;
+            // 英语优先：遍历完整语言偏好列表，含 en 即选英文；仅纯中文环境选中文
+            var list = (navigator.languages && navigator.languages.length)
+              ? navigator.languages
+              : [navigator.language || DEFAULT];
+            var hasZh = false;
+            for (var i = 0; i < list.length; i++) {
+              var code = String(list[i]).toLowerCase().split('-')[0];
+              if (code === 'en') { lang = 'en'; break; }
+              if (code === 'zh') { hasZh = true; }
+            }
+            if (lang === DEFAULT && hasZh) { lang = 'zh'; }
           }
         } catch (e) {
           lang = DEFAULT;

@@ -11,9 +11,10 @@ export function normalizeLang(raw: string): Locale {
 }
 
 /**
- * 客户端语言检测：
+ * 客户端语言检测（英语优先）：
  * 1. localStorage('berry-lang') 手动选择优先（覆盖系统）
- * 2. navigator.language 匹配支持列表
+ * 2. 遍历 navigator.languages 完整偏好列表——只要出现 en 就选英文；
+ *    只有纯中文环境（仅 zh 无 en）才给中文
  * 3. 都不匹配 → 回退 en（默认英语优先）
  */
 export function detectLocale(): Locale {
@@ -25,5 +26,15 @@ export function detectLocale(): Locale {
   } catch {
     /* ignore */
   }
-  return normalizeLang(navigator.language || defaultLocale);
+  const list: string[] =
+    typeof navigator !== 'undefined' && navigator.languages?.length
+      ? navigator.languages
+      : [navigator.language || defaultLocale];
+  let hasZh = false;
+  for (const lang of list) {
+    const code = String(lang).toLowerCase().split('-')[0];
+    if (code === 'en') return 'en';
+    if (code === 'zh') hasZh = true;
+  }
+  return hasZh ? 'zh' : defaultLocale;
 }

@@ -166,7 +166,11 @@ def render_hero(locale: str, t: dict) -> str:
       <a class="btn btn-ghost-on-dark" href="{BASE}/{locale}/#contact">{esc(t["hero"]["cta2"])}</a>
     </div>
   </div>
-  <div class="hero__scroll-hint" aria-hidden="true">{esc(t["hero"]["scroll"])}</div>
+  <div class="hero__scroll-hint" aria-hidden="true">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 9l6 6 6-6"/>
+    </svg>
+  </div>
 </section>"""
 
 
@@ -352,7 +356,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Hero 滚动缩小（Apple 产品页式 scroll-shrink）
+  // 语言切换持久化：点击语言链接时记住选择，下次访问直接用
+  var langLinks = document.querySelectorAll('.lang-switch a');
+  for (var li = 0; li < langLinks.length; li++) {
+    langLinks[li].addEventListener('click', function () {
+      try { localStorage.setItem('berry-lang', this.getAttribute('lang')); } catch (e) {}
+    });
+  }
+
+  // Hero 滚动缩小（Apple 产品页式 scroll-shrink，加强版）
   var hero = document.querySelector('.hero');
   var img = hero ? hero.querySelector('.hero__img') : null;
   function updateHero() {
@@ -360,8 +372,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var y = window.scrollY;
     var max = Math.max(hero.offsetHeight, 1);
     var p = Math.min(y / max, 1);
-    img.style.transform = 'scale(' + (1 - 0.18 * p) + ') translateY(' + (48 * p) + 'px)';
-    img.style.opacity = String(1 - 0.35 * p);
+    img.style.transform = 'scale(' + (1 - 0.45 * p) + ') translateY(' + (120 * p) + 'px)';
+    img.style.opacity = String(1 - 0.6 * p);
   }
   var ticking = false;
   function onScroll() {
@@ -391,10 +403,21 @@ INDEX_REDIRECT = f"""<!doctype html>
   var lang = DEFAULT;
   try {{
     var saved = localStorage.getItem('berry-lang');
-    if (saved && SUPPORTED.indexOf(saved) !== -1) {{ lang = saved; }}
-    else {{
-      var nav = (navigator.language || 'en').toLowerCase().split('-')[0];
-      lang = SUPPORTED.indexOf(nav) !== -1 ? nav : DEFAULT;
+    if (saved && SUPPORTED.indexOf(saved) !== -1) {{
+      lang = saved;
+    }} else {{
+      // 英语优先：优先遍历完整语言偏好列表（navigator.languages），
+      // 只要列表里出现 en 就选英文；只有纯中文环境才给中文。
+      var list = (navigator.languages && navigator.languages.length)
+        ? navigator.languages
+        : [navigator.language || DEFAULT];
+      var hasZh = false;
+      for (var i = 0; i < list.length; i++) {{
+        var code = String(list[i]).toLowerCase().split('-')[0];
+        if (code === 'en') {{ lang = 'en'; break; }}
+        if (code === 'zh') {{ hasZh = true; }}
+      }}
+      if (lang === DEFAULT && hasZh) {{ lang = 'zh'; }}
     }}
   }} catch (e) {{ lang = DEFAULT; }}
   location.replace('{BASE}/' + lang + '/');

@@ -45,6 +45,15 @@ const anchors = [
 </nav>
 
 <script>
+  // 语言切换持久化：点击语言链接时记住选择，下次访问直接用
+  document.querySelectorAll('.lang-switch a').forEach((link) => {
+    link.addEventListener('click', () => {
+      try {
+        localStorage.setItem('berry-lang', link.getAttribute('lang') || '');
+      } catch (e) {}
+    });
+  });
+
   // 暗色/亮色切换：localStorage 持久化
   const toggle = document.getElementById('theme-toggle') as HTMLButtonElement;
   const sun = document.getElementById('theme-icon-sun') as SVGElement;
