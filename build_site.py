@@ -27,6 +27,7 @@ JS_V = ""
 
 # 用户主页仓库模式：https://berryuiki.github.io/（根路径，无 base 前缀）
 BASE = ""
+SITE_URL = "https://berryuiki.github.io"
 
 # ============================================================
 # 翻译数据（与设计稿文案一致）
@@ -133,13 +134,15 @@ def render_nav(locale: str, t: dict) -> str:
     links = "".join(
         f'<li><a href="{BASE}/{locale}/#{a}">{esc(t["nav"][a])}</a></li>' for a in ANCHORS
     )
-    lang_switch = "".join(
-        f'<a href="{BASE}/{l}/" lang="{l}" {"aria-current=\"true\"" if l == locale else ""}>'
-        f'{"EN" if l == "en" else "中文"}</a>'
-        for l in LANGS
-    )
+    lang_switch_parts = []
+    for l in LANGS:
+        current = ' aria-current="true"' if l == locale else ""
+        label = "EN" if l == "en" else "中文"
+        lang_switch_parts.append(f'<a href="{BASE}/{l}/" lang="{l}"{current}>{label}</a>')
+    lang_switch = "".join(lang_switch_parts)
     return f"""
 <nav class="global-nav">
+  <div class="scroll-progress" aria-hidden="true"><span></span></div>
   <a class="global-nav__logo" href="{BASE}/{locale}/">THE BERRY</a>
   <ul class="global-nav__links">{links}</ul>
   <div class="global-nav__actions">
@@ -157,6 +160,8 @@ def render_nav(locale: str, t: dict) -> str:
 
 
 def render_hero(locale: str, t: dict) -> str:
+    frame_left = "作品集 / 2026" if locale == "zh" else "PORTFOLIO / 2026"
+    frame_right = "上海 — 北纬 31.2304°" if locale == "zh" else "SHANGHAI — 31.2304° N"
     return f"""
 <section class="hero" id="top">
   <picture>
@@ -164,6 +169,10 @@ def render_hero(locale: str, t: dict) -> str:
     <img class="hero__img" src="{BASE}/assets/hero.webp" alt="" width="1672" height="941" />
   </picture>
   <div class="hero__scrim" aria-hidden="true"></div>
+  <div class="hero__frame" aria-hidden="true">
+    <span>{frame_left}</span>
+    <span>{frame_right}</span>
+  </div>
   <div class="hero__content">
     <p class="hero__eyebrow">{esc(t["hero"]["eyebrow"])}</p>
     <p class="hero__badge">{esc(t["hero"]["badge"])}</p>
@@ -183,13 +192,15 @@ def render_hero(locale: str, t: dict) -> str:
 
 
 def render_about(t: dict) -> str:
+    section_label = "人物" if t is T["zh"] else "PROFILE"
+    portrait_label = "另一面 / 02" if t is T["zh"] else "ALTER EGO / 02"
     stats = "".join(
         f'<div><div class="about-stats__num">{esc(v)}</div><div class="about-stats__label">{esc(l)}</div></div>'
         for v, l in t["about"]["stats"]
     )
     chips = "".join(f'<span class="chip">{esc(c)}</span>' for c in t["about"]["chips"])
     return f"""
-<section class="section section--parchment" id="about">
+<section class="section section--parchment section--indexed" id="about" data-index="01" data-label="{section_label}">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">{esc(t["about"]["title"])}</h2>
@@ -202,21 +213,25 @@ def render_about(t: dict) -> str:
         <div class="about-stats">{stats}</div>
         <div class="about-chips">{chips}</div>
       </div>
-      <div class="about-portrait"><img src="{BASE}/assets/portrait.webp" alt="{esc(t["about"]["title"])}" width="1080" height="1080" loading="lazy" /></div>
+      <div class="about-portrait">
+        <img src="{BASE}/assets/portrait.webp" alt="{esc(t["about"]["title"])}" width="1080" height="1080" loading="lazy" />
+        <span class="about-portrait__label" aria-hidden="true">{portrait_label}</span>
+      </div>
     </div>
   </div>
 </section>"""
 
 
 def render_skills(t: dict) -> str:
+    section_label = "能力" if t is T["zh"] else "CAPABILITIES"
     cols = "".join(
-        f'<div class="skills-card"><h3>{esc(name)}</h3><ul>'
+        f'<div class="skills-card" data-spotlight><span class="skills-card__index">0{i + 1}</span><h3>{esc(name)}</h3><ul>'
         + "".join(f"<li>{esc(i)}</li>" for i in items)
         + "</ul></div>"
-        for name, items in t["skills"]["cols"]
+        for i, (name, items) in enumerate(t["skills"]["cols"])
     )
     return f"""
-<section class="section section--dark" id="skills">
+<section class="section section--dark section--indexed" id="skills" data-index="02" data-label="{section_label}">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">{esc(t["skills"]["title"])}</h2>
@@ -228,15 +243,16 @@ def render_skills(t: dict) -> str:
 
 
 def render_experience(t: dict) -> str:
+    section_label = "旅程" if t is T["zh"] else "JOURNEY"
     items = "".join(
-        f'<div class="timeline__item"><div class="timeline__period">{esc(period)}</div>'
+        f'<div class="timeline__item"><span class="timeline__index">0{i + 1}</span><div class="timeline__period">{esc(period)}</div>'
         f'<div><div class="timeline__role">{esc(role)}</div>'
         f'<div class="timeline__company">{esc(company)}</div>'
         f'<p class="timeline__desc">{esc(desc)}</p></div></div>'
-        for period, role, company, desc in t["experience"]["items"]
+        for i, (period, role, company, desc) in enumerate(t["experience"]["items"])
     )
     return f"""
-<section class="section" id="experience">
+<section class="section section--indexed" id="experience" data-index="03" data-label="{section_label}">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">{esc(t["experience"]["title"])}</h2>
@@ -248,13 +264,14 @@ def render_experience(t: dict) -> str:
 
 
 def render_work(t: dict) -> str:
+    section_label = "精选作品" if t is T["zh"] else "SELECTED WORK"
     cards = "".join(
-        f'<article class="work-card"><div class="work-card__img"><img src="{BASE}/assets/{img}" alt="{esc(name)}" width="672" height="380" loading="lazy" /></div>'
+        f'<article class="work-card" data-tilt><span class="work-card__index">0{i + 1}</span><div class="work-card__img"><img src="{BASE}/assets/{img}" alt="{esc(name)}" width="672" height="380" loading="lazy" /></div>'
         f'<h3>{esc(name)}</h3><p>{esc(desc)}</p><div class="work-card__tags">{esc(tags)}</div></article>'
-        for name, desc, tags, img in t["work"]["items"]
+        for i, (name, desc, tags, img) in enumerate(t["work"]["items"])
     )
     return f"""
-<section class="section section--parchment" id="work">
+<section class="section section--parchment section--indexed" id="work" data-index="04" data-label="{section_label}">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">{esc(t["work"]["title"])}</h2>
@@ -266,12 +283,13 @@ def render_work(t: dict) -> str:
 
 
 def render_testimonials(t: dict) -> str:
+    section_label = "回声" if t is T["zh"] else "VOICES"
     cards = "".join(
-        f'<figure class="testi-card"><blockquote>{esc(q)}</blockquote><figcaption>{esc(a)}</figcaption></figure>'
-        for q, a in t["testi"]["items"]
+        f'<figure class="testi-card"><span class="testi-card__quote" aria-hidden="true">“</span><blockquote>{esc(q)}</blockquote><figcaption><span>0{i + 1}</span>{esc(a)}</figcaption></figure>'
+        for i, (q, a) in enumerate(t["testi"]["items"])
     )
     return f"""
-<section class="section section--dark" id="testimonials">
+<section class="section section--dark section--indexed" id="testimonials" data-index="05" data-label="{section_label}">
   <div class="container">
     <div class="section-head">
       <h2 class="section-title">{esc(t["testi"]["title"])}</h2>
@@ -284,13 +302,16 @@ def render_testimonials(t: dict) -> str:
 
 def render_contact(t: dict) -> str:
     email = t["contact"]["email"]
+    section_label = "联系" if t is T["zh"] else "CONTACT"
+    marquee = "一起创造难忘的作品 — 一起创造难忘的作品 —" if t is T["zh"] else "LET'S MAKE SOMETHING UNFORGETTABLE — LET'S MAKE SOMETHING UNFORGETTABLE —"
     socials = (
         f'<a href="https://github.com/BerryUIKI">GitHub @BerryUIKI</a>'
         f'<a href="https://www.linkedin.com/">LinkedIn</a>'
         f'<a href="mailto:{esc_attr(email)}">Email</a>'
     )
     return f"""
-<section class="contact" id="contact">
+<section class="contact section--indexed" id="contact" data-index="06" data-label="{section_label}">
+  <div class="contact__marquee" aria-hidden="true"><span>{marquee}</span></div>
   <div class="container">
     <h2>{esc(t["contact"]["title"])}</h2>
     <p>{esc(t["contact"]["subtitle"])}</p>
@@ -301,16 +322,17 @@ def render_contact(t: dict) -> str:
 
 
 def render_footer(locale: str, t: dict) -> str:
+    footer_anchors = ["about", "skills", "work", "contact"]
     nav_links = "".join(
         f'<a href="{BASE}/{locale}/#{a}">{esc(label)}</a>'
-        for a, label in zip(ANCHORS, [t["nav"]["about"], t["nav"]["skills"], t["nav"]["work"], t["nav"]["contact"]])
+        for a, label in zip(footer_anchors, [t["nav"]["about"], t["nav"]["skills"], t["nav"]["work"], t["nav"]["contact"]])
     )
     social = "".join(
         f'<a href="{url}">{esc(label)}</a>'
-        for label, url in zip(t["footer"]["social"], ["https://github.com/BerryUIKI", "https://www.linkedin.com/", "#"])
+        for label, url in zip(t["footer"]["social"], ["https://github.com/BerryUIKI", "https://www.linkedin.com/"])
     )
     contact_col = "".join(
-        f'<a href="{"mailto:" + esc_attr(t["contact"]["email"]) if i == 0 else "#"}">{esc(label)}</a>'
+        f'<a href="mailto:{esc_attr(t["contact"]["email"])}">{esc(label)}</a>' if i == 0 else f'<span>{esc(label)}</span>'
         for i, label in enumerate(t["footer"]["contact"])
     )
     return f"""
@@ -346,6 +368,8 @@ SCRIPT_JS = """// THE BERRY — 交互脚本
 document.addEventListener('DOMContentLoaded', function () {
   var toggle = document.getElementById('theme-toggle');
   var root = document.documentElement;
+  var nav = document.querySelector('.global-nav');
+  var progress = document.querySelector('.scroll-progress span');
   function syncIcon() {
     var dark = root.getAttribute('data-theme') === 'dark';
     var sun = document.getElementById('theme-icon-sun');
@@ -358,9 +382,20 @@ document.addEventListener('DOMContentLoaded', function () {
   if (toggle) {
     toggle.addEventListener('click', function () {
       var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem('berry-theme', next); } catch (e) {}
-      syncIcon();
+      var applyTheme = function () {
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('berry-theme', next); } catch (e) {}
+        syncIcon();
+      };
+      var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (document.startViewTransition && !reduce) {
+        var rect = toggle.getBoundingClientRect();
+        root.style.setProperty('--theme-x', (rect.left + rect.width / 2) + 'px');
+        root.style.setProperty('--theme-y', (rect.top + rect.height / 2) + 'px');
+        document.startViewTransition(applyTheme);
+      } else {
+        applyTheme();
+      }
     });
   }
 
@@ -376,11 +411,14 @@ document.addEventListener('DOMContentLoaded', function () {
   var hero = document.querySelector('.hero');
   var img = hero ? hero.querySelector('.hero__img') : null;
   var scrim = hero ? hero.querySelector('.hero__scrim') : null;
+  var heroContent = hero ? hero.querySelector('.hero__content') : null;
+  var heroFrame = hero ? hero.querySelector('.hero__frame') : null;
   function updateHero() {
     if (!hero || !img) return;
     var y = window.scrollY;
     var max = Math.max(hero.offsetHeight, 1);
     var p = Math.min(y / max, 1);
+    hero.style.setProperty('--hero-progress', String(p));
     img.style.transform = 'scale(' + (1 - 0.45 * p) + ') translateY(' + (120 * p) + 'px)';
     img.style.opacity = String(1 - 0.6 * p);
     // 下滑时底部两角渐变圆角（全屏直角 → 卡片圆角）
@@ -388,6 +426,14 @@ document.addEventListener('DOMContentLoaded', function () {
     img.style.borderRadius = '0 0 ' + br + 'px ' + br + 'px';
     // scrim 随滚动淡出，露出纯色主题背景（亮色=白 / 暗色=黑）
     if (scrim) scrim.style.opacity = String(1 - 0.92 * p);
+    if (heroContent) heroContent.style.opacity = String(Math.max(0, 1 - 2.1 * p));
+    if (heroFrame) heroFrame.style.opacity = String(Math.max(0, 1 - 1.35 * p));
+    if (nav) nav.classList.toggle('is-scrolled', y > 24);
+    if (progress) {
+      var doc = document.documentElement;
+      var total = Math.max(doc.scrollHeight - window.innerHeight, 1);
+      progress.style.transform = 'scaleX(' + Math.min(y / total, 1) + ')';
+    }
   }
   var ticking = false;
   function onScroll() {
@@ -401,6 +447,61 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   updateHero();
+
+  // Section reveals + active navigation
+  var sections = document.querySelectorAll('main > section');
+  if ('IntersectionObserver' in window) {
+    document.body.classList.add('reveal-ready');
+    var revealObserver = new IntersectionObserver(function (entries) {
+      for (var r = 0; r < entries.length; r++) {
+        if (entries[r].isIntersecting) entries[r].target.classList.add('is-visible');
+      }
+    }, { threshold: 0.14 });
+    for (var s = 0; s < sections.length; s++) revealObserver.observe(sections[s]);
+
+    var navLinks = document.querySelectorAll('.global-nav__links a');
+    var activeObserver = new IntersectionObserver(function (entries) {
+      for (var a = 0; a < entries.length; a++) {
+        if (!entries[a].isIntersecting || !entries[a].target.id) continue;
+        for (var n = 0; n < navLinks.length; n++) {
+          var active = navLinks[n].getAttribute('href').indexOf('#' + entries[a].target.id) !== -1;
+          if (active) navLinks[n].setAttribute('aria-current', 'location');
+          else navLinks[n].removeAttribute('aria-current');
+        }
+      }
+    }, { rootMargin: '-42% 0px -52% 0px' });
+    for (var o = 0; o < sections.length; o++) activeObserver.observe(sections[o]);
+  }
+
+  // Pointer spotlight and restrained 3D tilt
+  var spotlights = document.querySelectorAll('[data-spotlight]');
+  for (var sp = 0; sp < spotlights.length; sp++) {
+    spotlights[sp].addEventListener('pointermove', function (event) {
+      var rect = this.getBoundingClientRect();
+      this.style.setProperty('--spot-x', (event.clientX - rect.left) + 'px');
+      this.style.setProperty('--spot-y', (event.clientY - rect.top) + 'px');
+    });
+  }
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    var tilts = document.querySelectorAll('[data-tilt]');
+    for (var ti = 0; ti < tilts.length; ti++) {
+      tilts[ti].addEventListener('pointermove', function (event) {
+        var rect = this.getBoundingClientRect();
+        var x = (event.clientX - rect.left) / Math.max(rect.width, 1) - 0.5;
+        var y = (event.clientY - rect.top) / Math.max(rect.height, 1) - 0.5;
+        this.style.setProperty('--tilt-x', (-y * 5).toFixed(2) + 'deg');
+        this.style.setProperty('--tilt-y', (x * 7).toFixed(2) + 'deg');
+        this.style.setProperty('--image-x', (x * 12).toFixed(2) + 'px');
+        this.style.setProperty('--image-y', (y * 12).toFixed(2) + 'px');
+      });
+      tilts[ti].addEventListener('pointerleave', function () {
+        this.style.setProperty('--tilt-x', '0deg');
+        this.style.setProperty('--tilt-y', '0deg');
+        this.style.setProperty('--image-x', '0px');
+        this.style.setProperty('--image-y', '0px');
+      });
+    }
+  }
 });
 """
 
@@ -448,9 +549,19 @@ INDEX_REDIRECT = f"""<!doctype html>
 </html>"""
 
 
-def page_shell(locale: str, t: dict, title: str, desc: str, body: str) -> str:
+def page_shell(locale: str, t: dict, title: str, desc: str, body: str, canonical_path: str, has_alternates: bool = True) -> str:
     meta = t["meta"]
     full_title = f"{title} — {meta['title']}" if title else meta["title"]
+    canonical_url = f"{SITE_URL}{canonical_path}"
+    alternate_links = ""
+    if has_alternates:
+        locale_prefix = f"/{locale}"
+        suffix = canonical_path[len(locale_prefix):] if canonical_path.startswith(locale_prefix) else "/"
+        alternate_links = (
+            f'<link rel="alternate" hreflang="en" href="{SITE_URL}/en{suffix}" />\n'
+            f'<link rel="alternate" hreflang="zh-Hans" href="{SITE_URL}/zh{suffix}" />\n'
+            f'<link rel="alternate" hreflang="x-default" href="{SITE_URL}/en{suffix}" />'
+        )
     return f"""<!doctype html>
 <html lang="{locale}" data-theme="light">
 <head>
@@ -461,6 +572,17 @@ def page_shell(locale: str, t: dict, title: str, desc: str, body: str) -> str:
 <meta property="og:title" content="{esc(full_title)}" />
 <meta property="og:description" content="{esc(desc or meta['description'])}" />
 <meta property="og:type" content="website" />
+<meta property="og:url" content="{canonical_url}" />
+<meta property="og:image" content="{SITE_URL}/og.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="{esc(full_title)}" />
+<meta name="twitter:description" content="{esc(desc or meta['description'])}" />
+<meta name="twitter:image" content="{SITE_URL}/og.png" />
+<meta name="theme-color" content="#08080a" />
+<link rel="canonical" href="{canonical_url}" />
+{alternate_links}
   <link rel="icon" type="image/svg+xml" href="{BASE}/favicon.svg" />
   <link rel="stylesheet" href="{BASE}/styles.css?v={CSS_V}" />
 </head>
@@ -490,7 +612,7 @@ def render_home(locale: str) -> str:
         + render_contact(t)
         + render_footer(locale, t)
     )
-    return page_shell(locale, t, "", "", body)
+    return page_shell(locale, t, "", "", body, f"/{locale}/")
 
 
 # ============================================================
@@ -609,7 +731,7 @@ def render_blog_index(locale: str) -> str:
         + f'<div class="blog-list">{items}</div></div></section>'
         + render_footer(locale, t)
     )
-    return page_shell(locale, t, t["blog"]["title"], t["blog"]["sub"], body)
+    return page_shell(locale, t, t["blog"]["title"], t["blog"]["sub"], body, f"/{locale}/blog/")
 
 
 def render_blog_post(locale: str, post: dict) -> str:
@@ -626,7 +748,7 @@ def render_blog_post(locale: str, post: dict) -> str:
         + "</div></section>"
         + render_footer(locale, t)
     )
-    return page_shell(locale, t, post["title"], post.get("description", ""), body)
+    return page_shell(locale, t, post["title"], post.get("description", ""), body, f"/{locale}/blog/{post['slug']}/", has_alternates=False)
 
 
 def minify_css(css: str) -> str:
@@ -677,6 +799,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
   function applyLang(l) {
     document.documentElement.setAttribute('lang', l);
+    document.title = l === 'zh' ? '花雨琦 — 产品设计师 & 开发者' : 'Berry Wahlberg — Product Designer & Developer';
+    var metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription) metaDescription.setAttribute('content', l === 'zh'
+      ? '花雨琦（Berry Wahlberg）的个人网站：设计与开发简洁、快速、以人为本的数字产品。'
+      : 'Portfolio of Berry Wahlberg (花雨琦): product designer and developer crafting simple, human software.');
     var els = document.querySelectorAll('[data-en]');
     for (var i = 0; i < els.length; i++) {
       var val = l === 'zh' ? els[i].getAttribute('data-zh') : els[i].getAttribute('data-en');
@@ -687,9 +814,16 @@ document.addEventListener('DOMContentLoaded', function () {
       var href = l === 'zh' ? links[j].getAttribute('data-href-zh') : links[j].getAttribute('data-href-en');
       if (href !== null) links[j].setAttribute('href', href);
     }
+    var indexed = document.querySelectorAll('[data-label-en]');
+    for (var q = 0; q < indexed.length; q++) {
+      var label = l === 'zh' ? indexed[q].getAttribute('data-label-zh') : indexed[q].getAttribute('data-label-en');
+      if (label !== null) indexed[q].setAttribute('data-label', label);
+    }
     var btns = document.querySelectorAll('.m-lang button');
     for (var k = 0; k < btns.length; k++) {
-      btns[k].setAttribute('data-active', btns[k].getAttribute('data-lang') === l ? 'true' : 'false');
+      var active = btns[k].getAttribute('data-lang') === l;
+      btns[k].setAttribute('data-active', active ? 'true' : 'false');
+      btns[k].setAttribute('aria-pressed', active ? 'true' : 'false');
     }
   }
   applyLang(lang);
@@ -711,29 +845,52 @@ document.addEventListener('DOMContentLoaded', function () {
     var moon = document.getElementById('m-icon-moon');
     if (sun) sun.style.display = dark ? 'none' : '';
     if (moon) moon.style.display = dark ? '' : 'none';
+    if (themeBtn) themeBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
   }
   syncThemeIcon();
   if (themeBtn) {
     themeBtn.addEventListener('click', function () {
       var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-      root.setAttribute('data-theme', next);
-      try { localStorage.setItem('berry-theme', next); } catch (e) {}
-      syncThemeIcon();
+      var applyTheme = function () {
+        root.setAttribute('data-theme', next);
+        try { localStorage.setItem('berry-theme', next); } catch (e) {}
+        syncThemeIcon();
+      };
+      if (document.startViewTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var rect = themeBtn.getBoundingClientRect();
+        root.style.setProperty('--theme-x', (rect.left + rect.width / 2) + 'px');
+        root.style.setProperty('--theme-y', (rect.top + rect.height / 2) + 'px');
+        document.startViewTransition(applyTheme);
+      } else {
+        applyTheme();
+      }
     });
   }
 
   // Hero 滚动缩小（移动版）
   var hero = document.querySelector('.m-hero');
   var img = hero ? hero.querySelector('.m-hero__img') : null;
+  var heroContent = hero ? hero.querySelector('.m-hero__content') : null;
+  var heroCtas = hero ? hero.querySelector('.m-hero__ctas') : null;
+  var nav = document.querySelector('.m-nav');
+  var progress = document.querySelector('.m-scroll-progress span');
   function updateHero() {
     if (!hero || !img) return;
     var y = window.scrollY;
     var max = Math.max(hero.offsetHeight, 1);
     var p = Math.min(y / max, 1);
+    hero.style.setProperty('--hero-progress', String(p));
     img.style.transform = 'scale(' + (1 - 0.3 * p) + ') translateY(' + (60 * p) + 'px)';
     img.style.opacity = String(1 - 0.5 * p);
     var br = Math.round(24 * p);
     img.style.borderRadius = '0 0 ' + br + 'px ' + br + 'px';
+    if (heroContent) heroContent.style.opacity = String(Math.max(0, 1 - 2 * p));
+    if (heroCtas) heroCtas.style.opacity = String(Math.max(0, 1 - 1.65 * p));
+    if (nav) nav.classList.toggle('is-scrolled', y > 18);
+    if (progress) {
+      var total = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1);
+      progress.style.transform = 'scaleX(' + Math.min(y / total, 1) + ')';
+    }
   }
   var ticking = false;
   function onScroll() {
@@ -744,6 +901,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   updateHero();
+
+  var sections = document.querySelectorAll('main > section');
+  if ('IntersectionObserver' in window) {
+    document.body.classList.add('m-reveal-ready');
+    var observer = new IntersectionObserver(function (entries) {
+      for (var e = 0; e < entries.length; e++) {
+        if (entries[e].isIntersecting) entries[e].target.classList.add('is-visible');
+      }
+    }, { threshold: 0.12 });
+    for (var s = 0; s < sections.length; s++) observer.observe(sections[s]);
+  }
 });
 """
 
@@ -791,7 +959,7 @@ def render_mobile(css_v: str, js_v: str) -> str:
     for i, c in enumerate(en['about']['chips']):
         chips += f'<span class="m-chip" {d(c, zh["about"]["chips"][i])}>{esc(c)}</span>'
     about_html = f"""
-<section class="section section--parchment" id="about">
+<section class="section section--parchment m-section--indexed" id="about" data-index="01" data-label="PROFILE" data-label-en="PROFILE" data-label-zh="人物">
   <h2 class="section-title" {d(en['about']['title'], zh['about']['title'])}>{esc(en['about']['title'])}</h2>
   <p class="section-sub" {d(en['about']['subtitle'], zh['about']['subtitle'])}>{esc(en['about']['subtitle'])}</p>
   <div class="m-about-text" style="margin-top:18px">
@@ -820,10 +988,10 @@ def render_mobile(css_v: str, js_v: str) -> str:
             for i2 in range(max(len(items), len(zh_items)))
         )
         skills_cards += (
-            f'<div class="m-skills-card"><h3 data-en="{esc(name)}" data-zh="{esc(zh_name)}">{esc(name)}</h3><ul>{lis}</ul></div>'
+            f'<div class="m-skills-card"><span class="m-card-index">0{i + 1}</span><h3 data-en="{esc(name)}" data-zh="{esc(zh_name)}">{esc(name)}</h3><ul>{lis}</ul></div>'
         )
     skills_html = f"""
-<section class="section section--dark" id="skills">
+<section class="section section--dark m-section--indexed" id="skills" data-index="02" data-label="CAPABILITIES" data-label-en="CAPABILITIES" data-label-zh="能力">
   <h2 class="section-title" {d(en['skills']['title'], zh['skills']['title'])}>{esc(en['skills']['title'])}</h2>
   <p class="section-sub" {d(en['skills']['subtitle'], zh['skills']['subtitle'])}>{esc(en['skills']['subtitle'])}</p>
   <div class="m-skills" style="margin-top:20px">{skills_cards}</div>
@@ -834,14 +1002,14 @@ def render_mobile(css_v: str, js_v: str) -> str:
     for i, (period, role, company, desc) in enumerate(en['experience']['items']):
         z = zh['experience']['items'][i]
         exp_items += f"""
-<div class="m-timeline__item">
+<div class="m-timeline__item"><span class="m-card-index">0{i + 1}</span>
   <div class="m-timeline__period">{esc(period)}</div>
   <div class="m-timeline__role" {d(role, z[1])}>{esc(role)}</div>
   <div class="m-timeline__company" {d(company, z[2])}>{esc(company)}</div>
   <p class="m-timeline__desc" {d(desc, z[3])}>{esc(desc)}</p>
 </div>"""
     exp_html = f"""
-<section class="section" id="experience">
+<section class="section m-section--indexed" id="experience" data-index="03" data-label="JOURNEY" data-label-en="JOURNEY" data-label-zh="旅程">
   <h2 class="section-title" {d(en['experience']['title'], zh['experience']['title'])}>{esc(en['experience']['title'])}</h2>
   <p class="section-sub" {d(en['experience']['subtitle'], zh['experience']['subtitle'])}>{esc(en['experience']['subtitle'])}</p>
   <div class="m-timeline" style="margin-top:20px">{exp_items}</div>
@@ -852,14 +1020,14 @@ def render_mobile(css_v: str, js_v: str) -> str:
     for i, (name, desc, tags, img) in enumerate(en['work']['items']):
         z = zh['work']['items'][i]
         work_cards += f"""
-<div class="m-work-card">
+<div class="m-work-card"><span class="m-card-index m-work-card__index">0{i + 1}</span>
   <img src="{b}/assets/{img}" alt="{esc(name)}" width="672" height="380" loading="lazy" />
   <h3>{esc(name)}</h3>
   <p {d(desc, z[1])}>{esc(desc)}</p>
   <div class="tags" {d(tags, z[2])}>{esc(tags)}</div>
 </div>"""
     work_html = f"""
-<section class="section section--parchment" id="work">
+<section class="section section--parchment m-section--indexed" id="work" data-index="04" data-label="SELECTED WORK" data-label-en="SELECTED WORK" data-label-zh="精选作品">
   <h2 class="section-title" {d(en['work']['title'], zh['work']['title'])}>{esc(en['work']['title'])}</h2>
   <p class="section-sub" {d(en['work']['subtitle'], zh['work']['subtitle'])}>{esc(en['work']['subtitle'])}</p>
   <div class="m-work" style="margin-top:20px">{work_cards}</div>
@@ -871,12 +1039,12 @@ def render_mobile(css_v: str, js_v: str) -> str:
     for i, (quote, author) in enumerate(en['testi']['items']):
         z = zh['testi']['items'][i]
         testi_cards += f"""
-<figure class="m-testi-card">
+<figure class="m-testi-card"><span class="m-testi-card__quote" aria-hidden="true">“</span>
   <blockquote {d(quote, z[0])}>{esc(quote)}</blockquote>
   <figcaption {d(author, z[1])}>{esc(author)}</figcaption>
 </figure>"""
     testi_html = f"""
-<section class="section section--dark" id="testimonials">
+<section class="section section--dark m-section--indexed" id="testimonials" data-index="05" data-label="VOICES" data-label-en="VOICES" data-label-zh="回声">
   <h2 class="section-title" {d(en['testi']['title'], zh['testi']['title'])}>{esc(en['testi']['title'])}</h2>
   <p class="section-sub" {d(en['testi']['subtitle'], zh['testi']['subtitle'])}>{esc(en['testi']['subtitle'])}</p>
   <div class="m-testi" style="margin-top:20px">{testi_cards}</div>
@@ -885,7 +1053,8 @@ def render_mobile(css_v: str, js_v: str) -> str:
     # --- Contact ---
     email = en['contact']['email']
     contact_html = f"""
-<section class="m-contact" id="contact">
+<section class="m-contact m-section--indexed" id="contact" data-index="06" data-label="CONTACT" data-label-en="CONTACT" data-label-zh="联系">
+  <div class="m-contact__word" aria-hidden="true" {d("CREATE", "创造")}>CREATE</div>
   <h2 {d(en['contact']['title'], zh['contact']['title'])}>{esc(en['contact']['title'])}</h2>
   <p {d(en['contact']['subtitle'], zh['contact']['subtitle'])}>{esc(en['contact']['subtitle'])}</p>
   <a class="m-btn m-btn--primary" href="mailto:{esc(email)}">{esc(email)}</a>
@@ -917,12 +1086,11 @@ def render_mobile(css_v: str, js_v: str) -> str:
       <h4 {d(en['footer']['socialTitle'], zh['footer']['socialTitle'])}>{esc(en['footer']['socialTitle'])}</h4>
       <a href="https://github.com/BerryUIKI">GitHub</a>
       <a href="https://www.linkedin.com/">LinkedIn</a>
-      <a href="#">X / Twitter</a>
     </div>
     <div class="m-footer__col">
       <h4 {d(en['footer']['contactTitle'], zh['footer']['contactTitle'])}>{esc(en['footer']['contactTitle'])}</h4>
       <a href="mailto:{esc(email)}">{esc(email)}</a>
-      <a href="#" {d(en['footer']['contact'][1], zh['footer']['contact'][1])}>{esc(en['footer']['contact'][1])}</a>
+      <span {d(en['footer']['contact'][1], zh['footer']['contact'][1])}>{esc(en['footer']['contact'][1])}</span>
     </div>
   </div>
   <a class="m-footer__desktop-link" {d("View desktop site", "访问完整版")} {dref(f"{b}/en/?full=1", f"{b}/zh/?full=1")} href="{b}/en/?full=1">View desktop site</a>
@@ -934,6 +1102,7 @@ def render_mobile(css_v: str, js_v: str) -> str:
 
     nav = f"""
 <nav class="m-nav">
+  <div class="m-scroll-progress" aria-hidden="true"><span></span></div>
   <a class="m-nav__logo" href="{m}/">THE BERRY</a>
   <div class="m-nav__actions">
     <div class="m-lang" role="group" aria-label="Language">
@@ -954,6 +1123,15 @@ def render_mobile(css_v: str, js_v: str) -> str:
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>THE BERRY — Berry Wahlberg / 花雨琦</title>
 <meta name="description" content="Berry Wahlberg (花雨琦) — Product designer & developer." />
+<meta property="og:title" content="THE BERRY — Berry Wahlberg / 花雨琦" />
+<meta property="og:description" content="Berry Wahlberg (花雨琦) — Product designer & developer." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{SITE_URL}/m/" />
+<meta property="og:image" content="{SITE_URL}/og.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="{SITE_URL}/og.png" />
+<meta name="theme-color" content="#08080a" />
+<link rel="canonical" href="{SITE_URL}/m/" />
 <link rel="icon" type="image/svg+xml" href="{b}/favicon.svg" />
 <link rel="stylesheet" href="{b}/mobile.css?v={css_v}" />
 </head>
@@ -983,7 +1161,9 @@ def main():
     DIST.mkdir(parents=True, exist_ok=True)
 
     # 静态资源（CSS/JS 压缩，图片仅发布 WebP）
-    shutil.copy(ROOT / "public" / "favicon.svg", DIST / "favicon.svg")
+    for public_file in (ROOT / "public").iterdir():
+        if public_file.is_file():
+            shutil.copy(public_file, DIST / public_file.name)
     css = minify_css((SRC / "styles" / "global.css").read_text(encoding="utf-8"))
     js = minify_js(SCRIPT_JS)
     (DIST / "styles.css").write_text(css, encoding="utf-8")
