@@ -375,6 +375,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var p = Math.min(y / max, 1);
     img.style.transform = 'scale(' + (1 - 0.45 * p) + ') translateY(' + (120 * p) + 'px)';
     img.style.opacity = String(1 - 0.6 * p);
+    // 下滑时底部两角渐变圆角（全屏直角 → 卡片圆角）
+    var br = Math.round(28 * p);
+    img.style.borderRadius = '0 0 ' + br + 'px ' + br + 'px';
     // scrim 随滚动淡出，露出纯色主题背景（亮色=白 / 暗色=黑）
     if (scrim) scrim.style.opacity = String(1 - 0.92 * p);
   }
