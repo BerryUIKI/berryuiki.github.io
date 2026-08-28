@@ -154,7 +154,10 @@ def render_nav(locale: str, t: dict) -> str:
 def render_hero(locale: str, t: dict) -> str:
     return f"""
 <section class="hero" id="top">
-  <img class="hero__img" src="{BASE}/assets/hero.jpg" alt="" />
+  <picture>
+    <source media="(max-width: 640px)" srcset="{BASE}/assets/hero-mobile.jpg" />
+    <img class="hero__img" src="{BASE}/assets/hero.jpg" alt="" />
+  </picture>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__content">
     <p class="hero__eyebrow">{esc(t["hero"]["eyebrow"])}</p>

@@ -315,7 +315,8 @@ img {
   right: 0;
   bottom: 0;
   width: 62%;
-  background: linear-gradient(to left, var(--scrim), transparent);
+  /* 纯色遮罩（无渐变）：保证右侧文字可读，滚动时随照片一起淡出 */
+  background: rgba(0, 0, 0, 0.35);
   pointer-events: none;
 }
 
@@ -842,7 +843,8 @@ img {
     bottom: 0;
     width: 100%;
     height: 62%;
-    background: linear-gradient(to top, var(--scrim), transparent);
+    /* 移动端底部纯色遮罩（无渐变），保证底部文字可读 */
+    background: rgba(0, 0, 0, 0.45);
   }
   .hero__content {
     top: auto;
