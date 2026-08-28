@@ -50,9 +50,9 @@ T = {
                              ("2018 — 2021", "Product Designer", "Nova Labs · Remote", "Designed end-to-end experiences for a consumer fintech app, growing activation by 34%."),
                              ("2016 — 2018", "Frontend Developer", "Pixel Works · Guangzhou", "Built responsive marketing sites and internal tools with React, cutting page load times by 60%.")]},
     "work": {"title": "Selected Work", "subtitle": "A few projects I'm proud of.",
-             "items": [("Aurora Dashboard", "Real-time analytics for SaaS teams.", "React · D3 · Design System", "work-aurora.png"),
-                       ("Wander", "A travel planner that feels like a journal.", "Mobile · iOS · Figma", "work-wander.png"),
-                       ("Echo Notes", "AI note-taking that summarizes as you type.", "AI · TypeScript · GraphQL", "work-echo.png")]},
+             "items": [("Aurora Dashboard", "Real-time analytics for SaaS teams.", "React · D3 · Design System", "work-aurora.webp"),
+                       ("Wander", "A travel planner that feels like a journal.", "Mobile · iOS · Figma", "work-wander.webp"),
+                       ("Echo Notes", "AI note-taking that summarizes as you type.", "AI · TypeScript · GraphQL", "work-echo.webp")]},
     "testi": {"title": "What People Say", "subtitle": "Colleagues and clients on working together.",
               "items": [("Berry has an eye for detail that most designers only dream of. Every handoff is pixel-perfect and every decision is backed by reasoning.", "Sarah Kim — VP Product, Acme Studio"),
                         ("Working with Berry felt like adding a co-founder, not a contractor. She pushed our product to a level we didn't think we could reach.", "Daniel Chen — Founder, Nova Labs"),
@@ -89,9 +89,9 @@ T = {
                              ("2018 — 2021", "产品设计师", "Nova Labs · 远程", "为消费级金融应用设计端到端体验，激活率提升 34%。"),
                              ("2016 — 2018", "前端开发者", "Pixel Works · 广州", "使用 React 构建响应式营销网站与内部工具，页面加载时间降低 60%。")]},
     "work": {"title": "精选作品", "subtitle": "我引以为豪的几个项目。",
-             "items": [("Aurora Dashboard", "为 SaaS 团队打造的实时数据分析工具。", "React · D3 · 设计系统", "work-aurora.png"),
-                       ("Wander", "像日记一样自然的旅行规划应用。", "移动端 · iOS · Figma", "work-wander.png"),
-                       ("Echo Notes", "边输入边总结的 AI 笔记工具。", "AI · TypeScript · GraphQL", "work-echo.png")]},
+             "items": [("Aurora Dashboard", "为 SaaS 团队打造的实时数据分析工具。", "React · D3 · 设计系统", "work-aurora.webp"),
+                       ("Wander", "像日记一样自然的旅行规划应用。", "移动端 · iOS · Figma", "work-wander.webp"),
+                       ("Echo Notes", "边输入边总结的 AI 笔记工具。", "AI · TypeScript · GraphQL", "work-echo.webp")]},
     "testi": {"title": "他们怎么说", "subtitle": "同事与客户眼中的合作体验。",
               "items": [("花雨琦（Berry）对细节的洞察是大多数设计师梦寐以求的。每次交付都像素级完美，每个决策都有理有据。", "Sarah Kim — Acme Studio 产品副总裁"),
                         ("与花雨琦合作就像多了一位联合创始人，而不是外包。她把我们的产品推到了我们以为到不了的高度。", "Daniel Chen — Nova Labs 创始人"),
@@ -155,8 +155,8 @@ def render_hero(locale: str, t: dict) -> str:
     return f"""
 <section class="hero" id="top">
   <picture>
-    <source media="(max-width: 640px)" srcset="{BASE}/assets/hero-mobile.jpg" />
-    <img class="hero__img" src="{BASE}/assets/hero.jpg" alt="" />
+    <source media="(max-width: 640px)" srcset="{BASE}/assets/hero-mobile.webp" />
+    <img class="hero__img" src="{BASE}/assets/hero.webp" alt="" width="1672" height="941" />
   </picture>
   <div class="hero__scrim" aria-hidden="true"></div>
   <div class="hero__content">
@@ -197,7 +197,7 @@ def render_about(t: dict) -> str:
         <div class="about-stats">{stats}</div>
         <div class="about-chips">{chips}</div>
       </div>
-      <div class="about-portrait"><img src="{BASE}/assets/portrait.jpg" alt="{esc(t["about"]["title"])}" loading="lazy" /></div>
+      <div class="about-portrait"><img src="{BASE}/assets/portrait.webp" alt="{esc(t["about"]["title"])}" width="1080" height="1080" loading="lazy" /></div>
     </div>
   </div>
 </section>"""
@@ -244,7 +244,7 @@ def render_experience(t: dict) -> str:
 
 def render_work(t: dict) -> str:
     cards = "".join(
-        f'<article class="work-card"><div class="work-card__img"><img src="{BASE}/assets/{img}" alt="{esc(name)}" loading="lazy" /></div>'
+        f'<article class="work-card"><div class="work-card__img"><img src="{BASE}/assets/{img}" alt="{esc(name)}" width="672" height="380" loading="lazy" /></div>'
         f'<h3>{esc(name)}</h3><p>{esc(desc)}</p><div class="work-card__tags">{esc(tags)}</div></article>'
         for name, desc, tags, img in t["work"]["items"]
     )
@@ -614,6 +614,23 @@ def render_blog_post(locale: str, post: dict) -> str:
     return page_shell(locale, t, post["title"], post.get("description", ""), body)
 
 
+def minify_css(css: str) -> str:
+    """简单 CSS 压缩：去注释 + 折叠空白 + 精简标点周边空格"""
+    css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+    css = re.sub(r"\s+", " ", css)
+    css = re.sub(r"\s*([{}:;,>])\s*", r"\1", css)
+    return css.strip()
+
+
+def minify_js(js: str) -> str:
+    """简单 JS 压缩：去行注释（均在行首）+ 折叠空白"""
+    lines = [ln for ln in js.splitlines() if not ln.strip().startswith("//")]
+    js = "\n".join(lines)
+    js = re.sub(r"/\*.*?\*/", "", js, flags=re.S)
+    js = re.sub(r"\s+", " ", js)
+    return js.strip()
+
+
 # ============================================================
 # 构建入口
 # ============================================================
@@ -621,14 +638,16 @@ def main():
     # 沙箱环境禁用文件删除（回收站不可用），采用覆盖写入方式构建
     DIST.mkdir(parents=True, exist_ok=True)
 
-    # 静态资源
+    # 静态资源（CSS/JS 压缩，图片仅发布 WebP）
     shutil.copy(ROOT / "public" / "favicon.svg", DIST / "favicon.svg")
-    shutil.copy(SRC / "styles" / "global.css", DIST / "styles.css")
-    (DIST / "script.js").write_text(SCRIPT_JS, encoding="utf-8")
+    css = minify_css((SRC / "styles" / "global.css").read_text(encoding="utf-8"))
+    (DIST / "styles.css").write_text(css, encoding="utf-8")
+    (DIST / "script.js").write_text(minify_js(SCRIPT_JS), encoding="utf-8")
     assets = DIST / "assets"
     assets.mkdir(exist_ok=True)
     for f in ASSETS_SRC.iterdir():
-        shutil.copy(f, assets / f.name)
+        if f.suffix == ".webp":
+            shutil.copy(f, assets / f.name)
 
     # 根路径：语言检测重定向
     (DIST / "index.html").write_text(INDEX_REDIRECT, encoding="utf-8")
