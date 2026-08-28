@@ -8,6 +8,7 @@ THE BERRY — 微型静态站点生成器（纯 Python 标准库，无依赖）
 
 用法: python build_site.py  （输出到 dist/）
 """
+import hashlib
 import html as html_mod
 import re
 import shutil
@@ -19,6 +20,10 @@ SRC = ROOT / "src"
 DIST = ROOT / "dist"
 ASSETS_SRC = SRC / "assets"
 POSTS_SRC = SRC / "content" / "posts"
+
+# 资源版本号（内容哈希）—— CSS/JS 变更后 URL 自动变化，强制浏览器拉新，避免缓存旧版
+CSS_V = ""
+JS_V = ""
 
 # 用户主页仓库模式：https://berryuiki.github.io/（根路径，无 base 前缀）
 BASE = ""
@@ -452,12 +457,12 @@ def page_shell(locale: str, t: dict, title: str, desc: str, body: str) -> str:
 <meta property="og:title" content="{esc(full_title)}" />
 <meta property="og:description" content="{esc(desc or meta['description'])}" />
 <meta property="og:type" content="website" />
-<link rel="icon" type="image/svg+xml" href="{BASE}/favicon.svg" />
-<link rel="stylesheet" href="{BASE}/styles.css" />
+  <link rel="icon" type="image/svg+xml" href="{BASE}/favicon.svg" />
+  <link rel="stylesheet" href="{BASE}/styles.css?v={CSS_V}" />
 </head>
 <body>
 {body}
-<script src="{BASE}/script.js"></script>
+<script src="{BASE}/script.js?v={JS_V}"></script>
 </body>
 </html>"""
 
@@ -636,13 +641,17 @@ def minify_js(js: str) -> str:
 # ============================================================
 def main():
     # 沙箱环境禁用文件删除（回收站不可用），采用覆盖写入方式构建
+    global CSS_V, JS_V
     DIST.mkdir(parents=True, exist_ok=True)
 
     # 静态资源（CSS/JS 压缩，图片仅发布 WebP）
     shutil.copy(ROOT / "public" / "favicon.svg", DIST / "favicon.svg")
     css = minify_css((SRC / "styles" / "global.css").read_text(encoding="utf-8"))
+    js = minify_js(SCRIPT_JS)
     (DIST / "styles.css").write_text(css, encoding="utf-8")
-    (DIST / "script.js").write_text(minify_js(SCRIPT_JS), encoding="utf-8")
+    (DIST / "script.js").write_text(js, encoding="utf-8")
+    CSS_V = hashlib.md5(css.encode("utf-8")).hexdigest()[:8]
+    JS_V = hashlib.md5(js.encode("utf-8")).hexdigest()[:8]
     assets = DIST / "assets"
     assets.mkdir(exist_ok=True)
     for f in ASSETS_SRC.iterdir():

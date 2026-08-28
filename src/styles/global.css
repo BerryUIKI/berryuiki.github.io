@@ -310,14 +310,8 @@ img {
 }
 
 .hero__scrim {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 62%;
-  /* 纯色遮罩（无渐变）：保证右侧文字可读，滚动时随照片一起淡出 */
-  background: rgba(0, 0, 0, 0.35);
-  pointer-events: none;
+  /* 遮罩色块全部移除（桌面+移动）——文字用 text-shadow 保证可读性 */
+  display: none;
 }
 
 .hero__content {
@@ -327,6 +321,14 @@ img {
   transform: translateY(-50%);
   max-width: 560px;
   color: var(--on-dark);
+}
+
+/* 无遮罩后：照片上文字用阴影提升可读性 */
+.hero__eyebrow,
+.hero__badge,
+.hero__title,
+.hero__subtitle {
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .hero__eyebrow {
