@@ -166,11 +166,11 @@ def render_hero(locale: str, t: dict) -> str:
       <a class="btn btn-ghost-on-dark" href="{BASE}/{locale}/#contact">{esc(t["hero"]["cta2"])}</a>
     </div>
   </div>
-  <div class="hero__scroll-hint" aria-hidden="true">
+  <a class="hero__scroll-hint" href="#about" aria-label="Scroll to content">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M6 9l6 6 6-6"/>
     </svg>
-  </div>
+  </a>
 </section>"""
 
 
@@ -367,6 +367,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // Hero 滚动缩小（Apple 产品页式 scroll-shrink，加强版）
   var hero = document.querySelector('.hero');
   var img = hero ? hero.querySelector('.hero__img') : null;
+  var scrim = hero ? hero.querySelector('.hero__scrim') : null;
   function updateHero() {
     if (!hero || !img) return;
     var y = window.scrollY;
@@ -374,6 +375,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var p = Math.min(y / max, 1);
     img.style.transform = 'scale(' + (1 - 0.45 * p) + ') translateY(' + (120 * p) + 'px)';
     img.style.opacity = String(1 - 0.6 * p);
+    // scrim 随滚动淡出，露出纯色主题背景（亮色=白 / 暗色=黑）
+    if (scrim) scrim.style.opacity = String(1 - 0.92 * p);
   }
   var ticking = false;
   function onScroll() {

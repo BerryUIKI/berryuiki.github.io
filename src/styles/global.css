@@ -383,9 +383,20 @@ img {
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.35);
   color: #ffffff;
-  pointer-events: none;
+  cursor: pointer;
   opacity: 0.85;
+  transition: background 0.2s ease, opacity 0.2s ease;
   animation: scroll-hint-bounce 2s ease-in-out infinite;
+}
+
+.hero__scroll-hint:hover {
+  background: rgba(0, 0, 0, 0.55);
+  opacity: 1;
+}
+
+.hero__scroll-hint:focus-visible {
+  outline: 2px solid var(--primary-on-dark);
+  outline-offset: 2px;
 }
 
 @keyframes scroll-hint-bounce {
@@ -821,6 +832,10 @@ img {
     /* 移动端视口安全高度（svh 避免地址栏遮挡） */
     height: 100vh;
     height: 100svh;
+  }
+  .hero__img {
+    /* 人物靠左：移动端竖屏 cover 时保留左侧主体，避免裁掉人 */
+    object-position: left center;
   }
   .hero__scrim {
     top: auto;
