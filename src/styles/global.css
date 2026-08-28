@@ -830,30 +830,27 @@ img {
     gap: 32px;
   }
   .hero {
-    /* 移动端视口安全高度（svh 避免地址栏遮挡） */
+    /* 移动端视口安全高度（svh 避免地址栏遮挡）+ flex 上下布局 */
     height: 100vh;
     height: 100svh;
+    display: flex;
+    flex-direction: column;
   }
   .hero__img {
     /* 人物在照片下方，cover 时从底部对齐——保证人物始终在视口下方不被裁 */
     object-position: center bottom;
   }
+  /* 去掉灰色遮罩色块（手机版） */
   .hero__scrim {
-    /* scrim 改顶部压暗——保证上方文字区可读 */
-    top: 0;
-    bottom: auto;
-    width: 100%;
-    height: 42%;
-    background: rgba(0, 0, 0, 0.45);
+    display: none;
   }
   .hero__content {
-    /* 文字移到顶部——人物在下半部完全不遮挡 */
-    top: 40px;
-    bottom: auto;
-    left: 24px;
-    right: 24px;
-    max-width: none;
+    /* 文字流式排到顶部，居左对齐 */
+    position: static;
     transform: none;
+    max-width: none;
+    width: 100%;
+    padding: 40px 24px 0;
   }
   .hero__eyebrow {
     font-size: 12px;
@@ -872,9 +869,12 @@ img {
     margin-top: 12px;
   }
   .hero__ctas {
-    margin-top: 20px;
+    /* 按钮推到最底部居中 */
+    margin-top: auto;
+    justify-content: center;
     gap: 12px;
     flex-wrap: wrap;
+    padding-bottom: 80px;
   }
   .hero__ctas .btn {
     font-size: 15px;
@@ -898,7 +898,7 @@ img {
     font-size: 30px;
   }
   .hero__content {
-    top: 28px;
+    padding-top: 28px;
   }
 }
 
