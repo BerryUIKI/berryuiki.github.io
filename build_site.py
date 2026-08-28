@@ -412,6 +412,12 @@ INDEX_REDIRECT = f"""<!doctype html>
 <title>THE BERRY — Berry Wahlberg / 花雨琦</title>
 <script>
 (function () {{
+  // 移动端 → /m/ 独立页面
+  if (window.innerWidth < 900) {{
+    location.replace('{BASE}/m/');
+    return;
+  }}
+  // 桌面端 → 语言检测重定向（默认英语优先）
   var SUPPORTED = ['en', 'zh'];
   var DEFAULT = 'en';
   var lang = DEFAULT;
@@ -420,8 +426,6 @@ INDEX_REDIRECT = f"""<!doctype html>
     if (saved && SUPPORTED.indexOf(saved) !== -1) {{
       lang = saved;
     }} else {{
-      // 英语优先：优先遍历完整语言偏好列表（navigator.languages），
-      // 只要列表里出现 en 就选英文；只有纯中文环境才给中文。
       var list = (navigator.languages && navigator.languages.length)
         ? navigator.languages
         : [navigator.language || DEFAULT];
@@ -462,6 +466,12 @@ def page_shell(locale: str, t: dict, title: str, desc: str, body: str) -> str:
 </head>
 <body>
 {body}
+<script>
+// 移动端访问 PC 页 → 跳转 /m/ 独立页（博客页与 ?full=1 除外）
+if (window.innerWidth < 900 && location.pathname.indexOf('/blog') === -1 && !location.search.includes('full')) {{
+  location.replace('{BASE}/m/');
+}}
+</script>
 <script src="{BASE}/script.js?v={JS_V}"></script>
 </body>
 </html>"""
@@ -636,6 +646,334 @@ def minify_js(js: str) -> str:
     return js.strip()
 
 
+SCRIPT_MOBILE_JS = """// THE BERRY — 移动端独立页脚本（/m/）
+(function () {
+  try {
+    var saved = localStorage.getItem('berry-theme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  } catch (e) { document.documentElement.setAttribute('data-theme', 'light'); }
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+  var SUPPORTED = ['en', 'zh'];
+  var DEFAULT = 'en';
+  var lang = DEFAULT;
+  try {
+    var savedLang = localStorage.getItem('berry-lang');
+    if (savedLang && SUPPORTED.indexOf(savedLang) !== -1) {
+      lang = savedLang;
+    } else {
+      var list = (navigator.languages && navigator.languages.length) ? navigator.languages : [navigator.language || DEFAULT];
+      var hasZh = false;
+      for (var i = 0; i < list.length; i++) {
+        var code = String(list[i]).toLowerCase().split('-')[0];
+        if (code === 'en') { lang = 'en'; break; }
+        if (code === 'zh') { hasZh = true; }
+      }
+      if (lang === DEFAULT && hasZh) { lang = 'zh'; }
+    }
+  } catch (e) { lang = DEFAULT; }
+
+  function applyLang(l) {
+    document.documentElement.setAttribute('lang', l);
+    var els = document.querySelectorAll('[data-en]');
+    for (var i = 0; i < els.length; i++) {
+      var val = l === 'zh' ? els[i].getAttribute('data-zh') : els[i].getAttribute('data-en');
+      if (val !== null) els[i].textContent = val;
+    }
+    var links = document.querySelectorAll('[data-href-en]');
+    for (var j = 0; j < links.length; j++) {
+      var href = l === 'zh' ? links[j].getAttribute('data-href-zh') : links[j].getAttribute('data-href-en');
+      if (href !== null) links[j].setAttribute('href', href);
+    }
+    var btns = document.querySelectorAll('.m-lang button');
+    for (var k = 0; k < btns.length; k++) {
+      btns[k].setAttribute('data-active', btns[k].getAttribute('data-lang') === l ? 'true' : 'false');
+    }
+  }
+  applyLang(lang);
+
+  var langBtns = document.querySelectorAll('.m-lang button');
+  for (var b = 0; b < langBtns.length; b++) {
+    langBtns[b].addEventListener('click', function () {
+      lang = this.getAttribute('data-lang');
+      applyLang(lang);
+      try { localStorage.setItem('berry-lang', lang); } catch (e) {}
+    });
+  }
+
+  var themeBtn = document.getElementById('m-theme-toggle');
+  var root = document.documentElement;
+  function syncThemeIcon() {
+    var dark = root.getAttribute('data-theme') === 'dark';
+    var sun = document.getElementById('m-icon-sun');
+    var moon = document.getElementById('m-icon-moon');
+    if (sun) sun.style.display = dark ? 'none' : '';
+    if (moon) moon.style.display = dark ? '' : 'none';
+  }
+  syncThemeIcon();
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('berry-theme', next); } catch (e) {}
+      syncThemeIcon();
+    });
+  }
+
+  // Hero 滚动缩小（移动版）
+  var hero = document.querySelector('.m-hero');
+  var img = hero ? hero.querySelector('.m-hero__img') : null;
+  function updateHero() {
+    if (!hero || !img) return;
+    var y = window.scrollY;
+    var max = Math.max(hero.offsetHeight, 1);
+    var p = Math.min(y / max, 1);
+    img.style.transform = 'scale(' + (1 - 0.3 * p) + ') translateY(' + (60 * p) + 'px)';
+    img.style.opacity = String(1 - 0.5 * p);
+    var br = Math.round(24 * p);
+    img.style.borderRadius = '0 0 ' + br + 'px ' + br + 'px';
+  }
+  var ticking = false;
+  function onScroll() {
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(function () { updateHero(); ticking = false; });
+    }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  updateHero();
+});
+"""
+
+
+def render_mobile(css_v: str, js_v: str) -> str:
+    """移动端独立页 /m/（双语内嵌，data-en/data-zh 属性，JS 即时切换）"""
+    en, zh = T["en"], T["zh"]
+
+    def d(txt_en: str, txt_zh: str) -> str:
+        return f'data-en="{esc(txt_en)}" data-zh="{esc(txt_zh)}"'
+
+    def dref(href_en: str, href_zh: str) -> str:
+        return f'data-href-en="{esc(href_en)}" data-href-zh="{esc(href_zh)}"'
+
+    b = BASE
+    m = "/m"
+
+    # --- Hero ---
+    hero_html = f"""
+<section class="m-hero" id="top">
+  <img class="m-hero__img" src="{b}/assets/hero-mobile.webp" alt="" width="941" height="1672" />
+  <div class="m-hero__content">
+    <p class="m-hero__eyebrow" {d(en['hero']['eyebrow'], zh['hero']['eyebrow'])}>{esc(en['hero']['eyebrow'])}</p>
+    <p class="m-hero__badge" {d(en['hero']['badge'], zh['hero']['badge'])}>{esc(en['hero']['badge'])}</p>
+    <h1 class="m-hero__title" {d(en['hero']['title'], zh['hero']['title'])}>{esc(en['hero']['title'])}</h1>
+    <p class="m-hero__subtitle" {d(en['hero']['subtitle'], zh['hero']['subtitle'])}>{esc(en['hero']['subtitle'])}</p>
+  </div>
+  <div class="m-hero__ctas">
+    <a class="m-btn m-btn--primary" href="{m}/#work" {d(en['hero']['cta1'], zh['hero']['cta1'])}>{esc(en['hero']['cta1'])}</a>
+    <a class="m-btn m-btn--ghost" href="{m}/#contact" {d(en['hero']['cta2'], zh['hero']['cta2'])}>{esc(en['hero']['cta2'])}</a>
+  </div>
+  <a class="m-hero__scroll" href="{m}/#about" aria-label="Scroll to content">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+  </a>
+</section>"""
+
+    # --- About ---
+    about_stats = ""
+    for i, (v, _lbl) in enumerate(en['about']['stats']):
+        about_stats += (
+            f'<div><div class="m-stats__num">{esc(v)}</div>'
+            f'<div class="m-stats__label" {d(en["about"]["stats"][i][1], zh["about"]["stats"][i][1])}>{esc(en["about"]["stats"][i][1])}</div></div>'
+        )
+    chips = ""
+    for i, c in enumerate(en['about']['chips']):
+        chips += f'<span class="m-chip" {d(c, zh["about"]["chips"][i])}>{esc(c)}</span>'
+    about_html = f"""
+<section class="section section--parchment" id="about">
+  <h2 class="section-title" {d(en['about']['title'], zh['about']['title'])}>{esc(en['about']['title'])}</h2>
+  <p class="section-sub" {d(en['about']['subtitle'], zh['about']['subtitle'])}>{esc(en['about']['subtitle'])}</p>
+  <div class="m-about-text" style="margin-top:18px">
+    <p {d(en['about']['p1'], zh['about']['p1'])}>{esc(en['about']['p1'])}</p>
+    <p {d(en['about']['p2'], zh['about']['p2'])}>{esc(en['about']['p2'])}</p>
+  </div>
+  <div class="m-stats">{about_stats}</div>
+  <div class="m-chips">{chips}</div>
+  <div class="m-portrait"><img src="{b}/assets/portrait.webp" alt="{esc(en['about']['title'])}" width="1080" height="1080" loading="lazy" /></div>
+</section>"""
+
+    # --- Skills ---
+    skills_cards = ""
+    for i, (name, items) in enumerate(en['skills']['cols']):
+        zh_name, zh_items = zh['skills']['cols'][i]
+        lis = "".join(
+            f"<li>{esc(item)}</li>" if i2 < len(items) else ""
+            for i2, item in enumerate(items)
+        )
+        zh_lis = "".join(
+            f'<li class="zh-only" data-en="{esc(items[i2]) if i2 < len(items) else ""}" data-zh="{esc(zh_items[i2]) if i2 < len(zh_items) else ""}">{esc(zh_items[i2]) if i2 < len(zh_items) else ""}</li>'
+            for i2 in range(max(len(items), len(zh_items)))
+        )
+        lis = "".join(
+            f'<li data-en="{esc(items[i2]) if i2 < len(items) else ""}" data-zh="{esc(zh_items[i2]) if i2 < len(zh_items) else ""}">{esc(items[i2]) if i2 < len(items) else ""}</li>'
+            for i2 in range(max(len(items), len(zh_items)))
+        )
+        skills_cards += (
+            f'<div class="m-skills-card"><h3 data-en="{esc(name)}" data-zh="{esc(zh_name)}">{esc(name)}</h3><ul>{lis}</ul></div>'
+        )
+    skills_html = f"""
+<section class="section section--dark" id="skills">
+  <h2 class="section-title" {d(en['skills']['title'], zh['skills']['title'])}>{esc(en['skills']['title'])}</h2>
+  <p class="section-sub" {d(en['skills']['subtitle'], zh['skills']['subtitle'])}>{esc(en['skills']['subtitle'])}</p>
+  <div class="m-skills" style="margin-top:20px">{skills_cards}</div>
+</section>"""
+
+    # --- Experience ---
+    exp_items = ""
+    for i, (period, role, company, desc) in enumerate(en['experience']['items']):
+        z = zh['experience']['items'][i]
+        exp_items += f"""
+<div class="m-timeline__item">
+  <div class="m-timeline__period">{esc(period)}</div>
+  <div class="m-timeline__role" {d(role, z[1])}>{esc(role)}</div>
+  <div class="m-timeline__company" {d(company, z[2])}>{esc(company)}</div>
+  <p class="m-timeline__desc" {d(desc, z[3])}>{esc(desc)}</p>
+</div>"""
+    exp_html = f"""
+<section class="section" id="experience">
+  <h2 class="section-title" {d(en['experience']['title'], zh['experience']['title'])}>{esc(en['experience']['title'])}</h2>
+  <p class="section-sub" {d(en['experience']['subtitle'], zh['experience']['subtitle'])}>{esc(en['experience']['subtitle'])}</p>
+  <div class="m-timeline" style="margin-top:20px">{exp_items}</div>
+</section>"""
+
+    # --- Work ---
+    work_cards = ""
+    for i, (name, desc, tags, img) in enumerate(en['work']['items']):
+        z = zh['work']['items'][i]
+        work_cards += f"""
+<div class="m-work-card">
+  <img src="{b}/assets/{img}" alt="{esc(name)}" width="672" height="380" loading="lazy" />
+  <h3>{esc(name)}</h3>
+  <p {d(desc, z[1])}>{esc(desc)}</p>
+  <div class="tags" {d(tags, z[2])}>{esc(tags)}</div>
+</div>"""
+    work_html = f"""
+<section class="section section--parchment" id="work">
+  <h2 class="section-title" {d(en['work']['title'], zh['work']['title'])}>{esc(en['work']['title'])}</h2>
+  <p class="section-sub" {d(en['work']['subtitle'], zh['work']['subtitle'])}>{esc(en['work']['subtitle'])}</p>
+  <div class="m-work" style="margin-top:20px">{work_cards}</div>
+  <a class="m-blog-link" {d("Blog / 博客", "博客 / Blog")} {dref(f"{b}/en/blog/", f"{b}/zh/blog/")} href="{b}/en/blog/">Blog</a>
+</section>"""
+
+    # --- Testimonials ---
+    testi_cards = ""
+    for i, (quote, author) in enumerate(en['testi']['items']):
+        z = zh['testi']['items'][i]
+        testi_cards += f"""
+<figure class="m-testi-card">
+  <blockquote {d(quote, z[0])}>{esc(quote)}</blockquote>
+  <figcaption {d(author, z[1])}>{esc(author)}</figcaption>
+</figure>"""
+    testi_html = f"""
+<section class="section section--dark" id="testimonials">
+  <h2 class="section-title" {d(en['testi']['title'], zh['testi']['title'])}>{esc(en['testi']['title'])}</h2>
+  <p class="section-sub" {d(en['testi']['subtitle'], zh['testi']['subtitle'])}>{esc(en['testi']['subtitle'])}</p>
+  <div class="m-testi" style="margin-top:20px">{testi_cards}</div>
+</section>"""
+
+    # --- Contact ---
+    email = en['contact']['email']
+    contact_html = f"""
+<section class="m-contact" id="contact">
+  <h2 {d(en['contact']['title'], zh['contact']['title'])}>{esc(en['contact']['title'])}</h2>
+  <p {d(en['contact']['subtitle'], zh['contact']['subtitle'])}>{esc(en['contact']['subtitle'])}</p>
+  <a class="m-btn m-btn--primary" href="mailto:{esc(email)}">{esc(email)}</a>
+  <div class="m-socials">
+    <a href="https://github.com/BerryUIKI">GitHub @BerryUIKI</a>
+    <a href="https://www.linkedin.com/">LinkedIn</a>
+    <a href="mailto:{esc(email)}">Email</a>
+  </div>
+</section>"""
+
+    # --- Footer ---
+    footer_links = ""
+    nav_keys = ["about", "skills", "work", "contact"]
+    for i, key in enumerate(nav_keys):
+        label = en["nav"][key]
+        zh_label = zh["nav"][key]
+        footer_links += f'<a href="{m}/#{key}" {d(label, zh_label)}>{esc(label)}</a>'
+    footer_html = f"""
+<footer class="m-footer">
+  <div class="m-footer__brand">
+    <div class="logo">THE BERRY</div>
+    <p {d(en['footer']['tagline'], zh['footer']['tagline'])}>{esc(en['footer']['tagline'])}</p>
+  </div>
+  <div class="m-footer__cols">
+    <div class="m-footer__col">
+      <h4 {d(en['footer']['navTitle'], zh['footer']['navTitle'])}>{esc(en['footer']['navTitle'])}</h4>{footer_links}
+    </div>
+    <div class="m-footer__col">
+      <h4 {d(en['footer']['socialTitle'], zh['footer']['socialTitle'])}>{esc(en['footer']['socialTitle'])}</h4>
+      <a href="https://github.com/BerryUIKI">GitHub</a>
+      <a href="https://www.linkedin.com/">LinkedIn</a>
+      <a href="#">X / Twitter</a>
+    </div>
+    <div class="m-footer__col">
+      <h4 {d(en['footer']['contactTitle'], zh['footer']['contactTitle'])}>{esc(en['footer']['contactTitle'])}</h4>
+      <a href="mailto:{esc(email)}">{esc(email)}</a>
+      <a href="#" {d(en['footer']['contact'][1], zh['footer']['contact'][1])}>{esc(en['footer']['contact'][1])}</a>
+    </div>
+  </div>
+  <a class="m-footer__desktop-link" {d("View desktop site", "访问完整版")} {dref(f"{b}/en/?full=1", f"{b}/zh/?full=1")} href="{b}/en/?full=1">View desktop site</a>
+  <div class="m-footer__bottom">
+    <span {d(en['footer']['copyright'], zh['footer']['copyright'])}>{esc(en['footer']['copyright'])}</span>
+    <span>EN | 中文</span>
+  </div>
+</footer>"""
+
+    nav = f"""
+<nav class="m-nav">
+  <a class="m-nav__logo" href="{m}/">THE BERRY</a>
+  <div class="m-nav__actions">
+    <div class="m-lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" data-active="true">EN</button>
+      <button type="button" data-lang="zh" data-active="false">中文</button>
+    </div>
+    <button class="m-theme" id="m-theme-toggle" type="button" aria-label="Toggle theme">
+      <svg id="m-icon-sun" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v3M12 20v3M1 12h3M20 12h3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+      <svg id="m-icon-moon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+    </button>
+  </div>
+</nav>"""
+
+    return f"""<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>THE BERRY — Berry Wahlberg / 花雨琦</title>
+<meta name="description" content="Berry Wahlberg (花雨琦) — Product designer & developer." />
+<link rel="icon" type="image/svg+xml" href="{b}/favicon.svg" />
+<link rel="stylesheet" href="{b}/mobile.css?v={css_v}" />
+</head>
+<body>
+{nav}
+<main>
+{hero_html}
+{about_html}
+{skills_html}
+{exp_html}
+{work_html}
+{testi_html}
+{contact_html}
+</main>
+{footer_html}
+<script src="{b}/mobile.js?v={js_v}"></script>
+</body>
+</html>"""
+
+
 # ============================================================
 # 构建入口
 # ============================================================
@@ -660,6 +998,17 @@ def main():
 
     # 根路径：语言检测重定向
     (DIST / "index.html").write_text(INDEX_REDIRECT, encoding="utf-8")
+
+    # 移动端独立页 /m/
+    mobile_css = minify_css((SRC / "styles" / "mobile.css").read_text(encoding="utf-8"))
+    mobile_js = minify_js(SCRIPT_MOBILE_JS)
+    (DIST / "mobile.css").write_text(mobile_css, encoding="utf-8")
+    (DIST / "mobile.js").write_text(mobile_js, encoding="utf-8")
+    m_css_v = hashlib.md5(mobile_css.encode("utf-8")).hexdigest()[:8]
+    m_js_v = hashlib.md5(mobile_js.encode("utf-8")).hexdigest()[:8]
+    mdir = DIST / "m"
+    mdir.mkdir(exist_ok=True)
+    (mdir / "index.html").write_text(render_mobile(m_css_v, m_js_v), encoding="utf-8")
 
     # 双语言主页
     for locale in LANGS:

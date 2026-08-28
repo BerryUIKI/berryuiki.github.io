@@ -1,0 +1,583 @@
+/* ============================================================
+   THE BERRY — 移动端独立样式（/m/）
+   与 PC 版 global.css 完全解耦，专为 <900px 设计
+   ============================================================ */
+
+:root {
+  /* Light */
+  --primary: #0066cc;
+  --primary-focus: #0071e3;
+  --primary-on-dark: #2997ff;
+  --ink: #1d1d1f;
+  --ink-muted-80: #333333;
+  --ink-muted-48: #7a7a7a;
+  --canvas: #ffffff;
+  --canvas-parchment: #f5f5f7;
+  --surface-tile-1: #272729;
+  --surface-tile-2: #2a2a2c;
+  --hairline: #e0e0e0;
+  --divider-soft: #f0f0f0;
+  --on-primary: #ffffff;
+  --on-dark: #ffffff;
+  --font: "SF Pro Text", "Inter", system-ui, -apple-system, "PingFang SC", "Noto Sans SC", sans-serif;
+  --font-display: "SF Pro Display", "Inter", system-ui, -apple-system, sans-serif;
+}
+
+[data-theme="dark"] {
+  --primary: #0a84ff;
+  --primary-focus: #409cff;
+  --ink: #f5f5f7;
+  --ink-muted-80: #d2d2d7;
+  --ink-muted-48: #86868b;
+  --canvas: #000000;
+  --canvas-parchment: #161617;
+  --surface-tile-1: #1d1d1f;
+  --surface-tile-2: #2a2a2c;
+  --hairline: #2c2c2e;
+  --divider-soft: #262628;
+  --on-primary: #ffffff;
+  --on-dark: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+  background: var(--canvas);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+.container {
+  padding: 0 24px;
+}
+
+.section {
+  padding: 56px 24px;
+}
+
+.section--parchment {
+  background: var(--canvas-parchment);
+}
+
+.section--dark {
+  background: var(--surface-tile-1);
+  color: var(--on-dark);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.section-sub {
+  margin-top: 6px;
+  font-size: 15px;
+  color: var(--ink-muted-48);
+}
+
+.section--dark .section-title {
+  color: var(--on-dark);
+}
+
+.section--dark .section-sub {
+  color: #b8b8bc;
+}
+
+/* ---------- 顶部导航 ---------- */
+.m-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 20px;
+  background: #000000;
+  color: #ffffff;
+}
+
+.m-nav__logo {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.m-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.m-lang {
+  display: flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: #1f1f21;
+}
+
+.m-lang button {
+  border: none;
+  background: transparent;
+  color: #d2d2d7;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.m-lang button[data-active="true"] {
+  background: #ffffff;
+  color: #1d1d1f;
+}
+
+.m-theme {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  border: none;
+  background: #1f1f21;
+  color: #d2d2d7;
+  cursor: pointer;
+}
+
+/* ---------- Hero ---------- */
+.m-hero {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  min-height: 560px;
+  overflow: hidden;
+  background: var(--canvas);
+}
+
+.m-hero__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center bottom;
+  z-index: 0;
+  transform-origin: center top;
+  will-change: transform, opacity;
+}
+
+.m-hero__content {
+  position: absolute;
+  top: 56px;
+  left: 24px;
+  right: 24px;
+  z-index: 2;
+  color: #ffffff;
+}
+
+.m-hero__eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #ffffff;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.m-hero__badge {
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  color: var(--primary-on-dark);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.m-hero__title {
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+  overflow-wrap: break-word;
+}
+
+.m-hero__subtitle {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: #e8e8ed;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
+}
+
+.m-hero__ctas {
+  position: absolute;
+  bottom: 100px;
+  left: 24px;
+  right: 24px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.m-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 14px 20px;
+  border-radius: 999px;
+  font-family: var(--font);
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+}
+
+.m-btn:active {
+  transform: scale(0.96);
+}
+
+.m-btn--primary {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.m-btn--ghost {
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.m-hero__scroll {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.35);
+  color: #ffffff;
+  animation: m-bounce 2s ease-in-out infinite;
+}
+
+@keyframes m-bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(6px); }
+}
+
+/* ---------- About ---------- */
+.m-about-text p {
+  margin-bottom: 14px;
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.m-stats {
+  display: flex;
+  gap: 28px;
+  margin-top: 8px;
+}
+
+.m-stats__num {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.m-stats__label {
+  font-size: 12px;
+  color: var(--ink-muted-48);
+}
+
+.m-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.m-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  background: var(--canvas-parchment);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-muted-80);
+}
+
+.m-portrait {
+  margin-top: 24px;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.m-portrait img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+/* ---------- Skills ---------- */
+.m-skills {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.m-skills-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--surface-tile-2);
+}
+
+.m-skills-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.m-skills-card li {
+  list-style: none;
+  font-size: 13px;
+  color: #b8b8bc;
+  line-height: 26px;
+}
+
+/* ---------- Experience ---------- */
+.m-timeline {
+  border-top: 1px solid var(--divider-soft);
+}
+
+.m-timeline__item {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--divider-soft);
+}
+
+.m-timeline__period {
+  font-size: 13px;
+  color: var(--ink-muted-48);
+}
+
+.m-timeline__role {
+  margin-top: 4px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.m-timeline__company {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--ink-muted-48);
+}
+
+.m-timeline__desc {
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--ink-muted-48);
+  line-height: 1.6;
+}
+
+/* ---------- Work ---------- */
+.m-work {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.m-work-card {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+  background: var(--canvas);
+}
+
+.m-work-card img {
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.m-work-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.m-work-card p {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--ink-muted-48);
+}
+
+.m-work-card .tags {
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+/* ---------- Testimonials ---------- */
+.m-testi {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.m-testi-card {
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--surface-tile-2);
+}
+
+.m-testi-card blockquote {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #e8e8ed;
+}
+
+.m-testi-card figcaption {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #b8b8bc;
+}
+
+/* ---------- Contact ---------- */
+.m-contact {
+  text-align: center;
+  padding: 72px 24px;
+}
+
+.m-contact h2 {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.3px;
+}
+
+.m-contact p {
+  margin-top: 10px;
+  font-size: 15px;
+  color: var(--ink-muted-48);
+}
+
+.m-contact .m-btn {
+  margin: 22px auto 0;
+  max-width: 320px;
+}
+
+.m-socials {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 20px;
+  font-size: 14px;
+}
+
+/* ---------- Footer ---------- */
+.m-footer {
+  background: var(--canvas-parchment);
+  padding: 40px 24px 28px;
+}
+
+.m-footer__brand .logo {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.m-footer__brand p {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-muted-48);
+}
+
+.m-footer__cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin-top: 24px;
+}
+
+.m-footer__col h4 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-muted-80);
+  margin-bottom: 8px;
+}
+
+.m-footer__col a {
+  display: block;
+  font-size: 13px;
+  color: var(--ink-muted-48);
+  margin-bottom: 6px;
+}
+
+.m-footer__bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--hairline);
+  font-size: 11px;
+  color: var(--ink-muted-48);
+}
+
+.m-footer__desktop-link {
+  margin-top: 16px;
+  font-size: 12px;
+  color: var(--primary);
+}
+
+/* ---------- 博客链接行 ---------- */
+.m-blog-link {
+  display: block;
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--primary);
+}
