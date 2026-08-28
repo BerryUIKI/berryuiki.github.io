@@ -835,20 +835,21 @@ img {
     height: 100svh;
   }
   .hero__img {
-    /* 人物靠左：移动端竖屏 cover 时保留左侧主体，避免裁掉人 */
-    object-position: left center;
+    /* 人物在照片下方，cover 时从底部对齐——保证人物始终在视口下方不被裁 */
+    object-position: center bottom;
   }
   .hero__scrim {
-    top: auto;
-    bottom: 0;
+    /* scrim 改顶部压暗——保证上方文字区可读 */
+    top: 0;
+    bottom: auto;
     width: 100%;
-    height: 62%;
-    /* 移动端底部纯色遮罩（无渐变），保证底部文字可读 */
+    height: 42%;
     background: rgba(0, 0, 0, 0.45);
   }
   .hero__content {
-    top: auto;
-    bottom: 88px;
+    /* 文字移到顶部——人物在下半部完全不遮挡 */
+    top: 40px;
+    bottom: auto;
     left: 24px;
     right: 24px;
     max-width: none;
@@ -897,7 +898,7 @@ img {
     font-size: 30px;
   }
   .hero__content {
-    bottom: 76px;
+    top: 28px;
   }
 }
 
