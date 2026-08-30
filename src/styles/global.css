@@ -2357,11 +2357,19 @@ body::before {
       radial-gradient(circle at 76% 30%, rgba(70, 126, 255, 0.13), transparent 28%);
   }
 
+  .hero__img {
+    object-position: center top;
+  }
+
   .hero__content {
     top: 92px;
+    bottom: 108px;
     left: 24px;
     right: 24px;
     max-width: 390px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     transform: none;
     animation: hero-content-mobile-in 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
   }
@@ -2396,7 +2404,7 @@ body::before {
   .hero__ctas {
     position: static;
     width: auto;
-    margin-top: 22px;
+    margin-top: auto;
     padding: 0;
     transform: none;
     justify-content: flex-start;
@@ -2540,6 +2548,7 @@ body::before {
 
   .hero__content {
     top: 84px;
+    bottom: 104px;
   }
 
   .hero__subtitle {
