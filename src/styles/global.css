@@ -2341,8 +2341,73 @@ body::before {
     color: #ffffff;
   }
 
+  .hero {
+    height: 100svh;
+    min-height: 660px;
+  }
+
+  .hero::before {
+    inset: 10px;
+    border-radius: 22px;
+  }
+
+  .hero::after {
+    background:
+      linear-gradient(180deg, rgba(5, 7, 13, 0.7) 0%, rgba(5, 7, 13, 0.28) 42%, rgba(5, 7, 13, 0.04) 68%, rgba(5, 7, 13, 0.34) 100%),
+      radial-gradient(circle at 76% 30%, rgba(70, 126, 255, 0.13), transparent 28%);
+  }
+
   .hero__content {
-    top: 82px;
+    top: 92px;
+    left: 24px;
+    right: 24px;
+    max-width: 390px;
+    transform: none;
+    animation: hero-content-mobile-in 0.78s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .hero__eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+
+  .hero__badge {
+    margin-top: 8px;
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+
+  .hero__title {
+    max-width: 390px;
+    margin-top: 12px;
+    font-size: clamp(38px, 10.5vw, 48px);
+    line-height: 1;
+    letter-spacing: -0.055em;
+    text-wrap: balance;
+  }
+
+  .hero__subtitle {
+    max-width: 350px;
+    margin-top: 14px;
+    font-size: clamp(16px, 4.4vw, 18px);
+    line-height: 1.42;
+  }
+
+  .hero__ctas {
+    position: static;
+    width: auto;
+    margin-top: 22px;
+    padding: 0;
+    transform: none;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .hero__ctas .btn {
+    min-height: 44px;
+    padding: 0 16px;
+    font-size: 14px;
   }
 
   .about-stats {
@@ -2474,15 +2539,15 @@ body::before {
   }
 
   .hero__content {
-    top: 72px;
+    top: 84px;
   }
 
   .hero__subtitle {
-    max-width: 310px;
+    max-width: 330px;
   }
 
   .hero__ctas {
-    bottom: 78px;
+    bottom: auto;
   }
 
   .footer__cols {
@@ -2497,6 +2562,10 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .hero__content {
+    animation: none;
+  }
+
   .skip-link,
   .global-nav__mobile,
   .nav-menu-toggle span,
@@ -2504,5 +2573,18 @@ body::before {
   .work-card__cover::after,
   .blog-teaser__card {
     transition: none;
+  }
+}
+
+@keyframes hero-content-mobile-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
